@@ -1,0 +1,52 @@
+# atom:set grammar=ruby:
+@name Simple BIOS
+@inputs Device0:wirelink Device1:wirelink Device2:wirelink Device3:wirelink Device4:wirelink Device5:wirelink Device6:wirelink Device7:wirelink
+
+# An example for simple usage of Eos, the default BIOS for the Mark III E2 computer.
+#
+# * Connect a button to the Power input
+# * Connect one or more output devices to any of the DeviceN inputs.
+#   * Valid output devices
+# * Power on the system.
+#
+# The system will then register all IO devices, POST,
+#
+# See mark_iii/doc/eos.md for more information on Eos including POST beep codes and BIOS configuration.
+
+if(first()) {
+    # Load the BIOS.
+    #include "mark_iii/os/eos"
+
+    # # BIOS Configuration
+
+    # # Map a power button to eos.
+    # # The power button is not a digital IO and is not registered as an input device.
+    # # If a blank string is given, the BIOS will automatically power on.
+    # #
+    # # Default: ""
+    # eos_power("")
+    eos_power("Power")
+
+    # # Set whether to check for inputs during the POST.
+    # #
+    # # Default: 1
+    eos_post_checkOutputs(0)
+
+    # # By default, Eos boots into a boot loader but for this example, we want to simply display a message.
+    # # The first parameter is the application name and the second is the array of variables (ARGV)
+    # # and is optional.
+    # #
+    # # Default: "bootloader"
+    eos_main("echo", array("Your system is properly configured!"))
+
+    # Set the IO inputs names to scan for devices.
+    # Unfortunately, E2 cannot get it's own inputs, so they must be manually added below.
+    eos_io("Device0", "Device1", "Device2", "Device3", "Device4", "Device5", "Device6", "Device7")
+
+    # Initialize the BIOS.
+    # This loads all of the kernel functions and drivers, then registers all devices connected to the IO inputs.
+    eos_init()
+}
+
+# Run the BIOS.
+eos_run()

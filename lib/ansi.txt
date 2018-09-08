@@ -1,0 +1,5 @@
+# atom:set grammar=ruby:
+@name ANSI Helpers
+
+function string ansi_esc(Sequence:string) { return toChar(27) + Sequence }
+function string ansi_ed(Argument:number) { return ansi_esc("[" + Argument + "J") } # Erase display

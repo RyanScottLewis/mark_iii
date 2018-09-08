@@ -1,0 +1,16 @@
+# atom:set grammar=ruby:
+@name Button Driver
+
+if (0) {
+  #include "mark_iii/lib/drv"
+}
+
+# Read the state of the button
+function number drv_btn_readNumber(Wire:wirelink) {
+  return Wire["Out", number]
+}
+
+if (first()) {
+  drv_mapDevice("gmod_wire_button", "btn")
+  drv_mapDevice("gmod_wire_dynamic_button", "btn")
+}

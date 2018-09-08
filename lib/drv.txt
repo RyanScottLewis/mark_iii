@@ -1,0 +1,18 @@
+# atom:set grammar=ruby:
+@name Driver Manager
+@persist DeviceDrivers:table
+
+# Handles registration of drivers and mapping of drivers to device types.
+#
+# Driver I/O interface:
+#   function number drv_NAME_readNumber(Wire:wirelink)
+#   function void   drv_NAME_writeNumber(Wire:wirelink, Value:number)
+#   function string drv_NAME_readString(Wire:wirelink)
+#   function void   drv_NAME_writeString(Wire:wirelink, Value:string)
+
+# TODO: Drivers:table and driver registration with drv_register(Name:string) to help with io_ validations
+
+# Map a device type (retrieved via 'Wirelink:entity():type()') to a driver name
+function void drv_mapDevice(DeviceType:string, DriverName:string) {
+  DeviceDrivers[DeviceType, string] = DriverName
+}

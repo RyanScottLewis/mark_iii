@@ -1,0 +1,63 @@
+# atom:set grammar=ruby:
+@name Mark III
+@inputs Device0:wirelink Device1:wirelink Device2:wirelink Device3:wirelink Device4:wirelink Device5:wirelink Device6:wirelink Device7:wirelink
+@persist DeviceInputs:array Keyboards:table Screen:table
+
+# TODO: DeviceManager: Separate devices and drivers
+
+if(first()) {
+    # Kernel functions
+    #include "mark_iii/lib/drv"
+    #include "mark_iii/lib/dev"
+    #include "mark_iii/lib/io"
+
+    # Kernel drivers
+    #include "mark_iii/lib/drv/cs"
+    #include "mark_iii/lib/drv/btn"
+    #include "mark_iii/lib/drv/kb"
+
+    # Unfortunately, E2 cannot get an it's own inputs, so they must be manually added below:
+    DeviceInputs = array("Device0", "Device1", "Device2", "Device3", "Device4", "Device5", "Device6", "Device7")
+}
+
+# Initialize the system
+
+if(first() | inputClk()) {
+    runOnTick(1)
+
+    foreach(Index, Input:string = DeviceInputs) {
+        local Device = dev_register(Input)
+        drv_updateDevice(Device)
+    }
+
+    Keyboards = dev_findAllBy("driver", "kb")
+    Screen    = dev_findBy("driver", "cs")
+
+    #printTable(Keyboards)
+    #printTable(Screen)
+}
+
+if(tickClk()) {
+    foreach(Index, Keyboard:table = Keyboards) {
+        local Value = io_readString(Keyboard)
+
+        if(Value != "") {
+            Keyboard["lastValue", string] = Value
+
+            print(Keyboard["type", string] + ":" + Keyboard["type", string] + " = " + Value)
+
+            io_writeString(Screen, Value)
+        }
+    }
+}
+
+
+
+
+    # if(Keyboard:count() == 0) {
+    #     print("No keyboard connected!")
+    # } else {
+    #     printTable(Keyboard)
+    #
+    #     print(drv_read(Keyboard))
+    # }

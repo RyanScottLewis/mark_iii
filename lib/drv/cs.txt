@@ -1,0 +1,61 @@
+# atom:set grammar=ruby:
+@name Console Screen Driver
+@persist CS_XO:number CS_YO:number
+
+if (0) { # All of the core is already loaded, this prevents "No such function" errors
+  #include "mark_iii/lib/drv"
+}
+
+
+# Write the given string to the screen
+# TODO: Implement ANSI escape codes: https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_sequences
+# TODO: Need refactor... and beer
+#       Also, driver needs its own table holding x/y offsets and buffer
+function void drv_cs_writeString(Wire:wirelink, Value:string) {
+  Offset = 1
+
+  while (Offset <= Value:length()) {
+    Byte = toByte(Value, Offset)
+
+    if (Byte == 27) { # Got ESC
+      Offset++
+      Byte = toByte(Value, Offset)
+      if (Byte == 91) { # Got "ESC [" CSI
+        Offset++
+        Byte = toByte(Value, Offset)
+
+        Arguments = array()
+        while (Byte >= 48 & Byte <= 57) { # Got number
+          Arguments:pushNumber(Value[Offset]:toNumber())
+          Offset++
+          Byte = toByte(Value, Offset)
+        }
+
+        switch (Byte) {
+          case 74, # J - ED: Erase in Display
+            if (Arguments:count() == 0 | Arguments[1, number] == 0) { # Erase from cursor to end
+              print("TODO: Erase to end")
+            } elseif (Arguments[1, number] == 1) { # Erase from cursor to beginning
+              print("TODO: Erase to beginning")
+            } elseif (Arguments[1, number] == 2) { # Clear entire display
+              Wire[2041] = 0
+            }
+            break
+        }
+
+      }
+    } elseif (Byte == 10) { # Got line feed
+      CS_YO++
+      CS_XO = 0
+    } else {
+      Wire:writeString(Value[Offset], CS_XO, CS_YO)
+      CS_XO++
+    }
+
+    Offset++
+  }
+}
+
+if (first()) {
+  drv_mapDevice("gmod_wire_consolescreen", "cs")
+}

@@ -1,0 +1,48 @@
+# atom:set grammar=ruby:
+@name IO Library
+
+# Handles reading/writing from/to devices using it's driver, if available.
+
+if (0) {
+  #include "mark_iii/lib/dev"
+}
+
+# Write a value to the device
+function void io_writeNumber(Device:table, Value:number) {
+  if (!dev_hasDriver(Device)) { return }
+
+  local Function = "drv_" + Device["driver", string] + "_writeNumber"
+  local Wirelink = Device["wirelink", wirelink]
+
+  Function(Wirelink, Value)
+}
+
+# Write a value to the device
+function void io_writeString(Device:table, Value:string) {
+  if (!dev_hasDriver(Device)) { return }
+
+  local Function = "drv_" + Device["driver", string] + "_writeString"
+  local Wirelink = Device["wirelink", wirelink]
+
+  Function(Wirelink, Value)
+}
+
+# Read a value from the device
+function number io_readNumber(Device:table) {
+  if (!dev_hasDriver(Device)) { return -1 }
+
+  local Function = "drv_" + Device["driver", string] + "_readNumber"
+  local Wirelink = Device["wirelink", wirelink]
+
+  return Function(Wirelink)[number]
+}
+
+# Read a value from the device
+function string io_readString(Device:table) {
+  if (!dev_hasDriver(Device)) { return "" }
+
+  local Function = "drv_" + Device["driver", string] + "_readString"
+  local Wirelink = Device["wirelink", wirelink]
+
+  return Function(Wirelink)[string]
+}

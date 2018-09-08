@@ -1,0 +1,65 @@
+# atom:set grammar=ruby:
+@name Ares Operating System
+@inputs Device0:wirelink Device1:wirelink Device2:wirelink Device3:wirelink Device4:wirelink Device5:wirelink Device6:wirelink Device7:wirelink
+@persist DeviceInputs:array Keyboards:table Screen:table
+
+# See ares.md for documentation.
+
+if (first()) {
+    # Kernel functions
+    #include "mark_iii/lib/drv"
+    #include "mark_iii/lib/dev"
+
+    # Kernel drivers
+    #include "mark_iii/drv/btn"
+
+    # Unfortunately, E2 cannot get an it's own inputs, so they must be manually added below:
+    DeviceInputs = array("Device0", "Device1", "Device2", "Device3", "Device4", "Device5", "Device6", "Device7")
+}
+
+# Initialize the system
+
+if(first() | inputClk()) {
+    runOnTick(1)
+
+    foreach(Index, Input:string = DeviceInputs) {
+        local Device = dev_register(Input)
+        drv_updateDevice(Device)
+    }
+
+    Keyboards = dev_findAllBy("driver", "kb")
+    Screen    = dev_findBy("driver", "cs")
+
+    printTable(Keyboards)
+    #printTable(Screen)
+}
+
+if(tickClk()) {
+    foreach(Index, Keyboard:table = Keyboards) {
+        local Value = dev_readString(Keyboard)
+        #print(Value)
+
+        # if(Keyboard["lastValue", string] != Value && Value != "") {
+        #     Keyboard["lastValue", string] = Value
+        #
+        #     print(Keyboard["name", string] + ":" + Keyboard["type", string] + " = " + Value)
+        #
+        #     printTable(Screen)
+        #     print(Value)
+        #     #dev_writeString(Screen, Value)
+        #     #dev_write(Screen, Value)
+        #
+        # }
+    }
+}
+
+
+
+
+    # if(Keyboard:count() == 0) {
+    #     print("No keyboard connected!")
+    # } else {
+    #     printTable(Keyboard)
+    #
+    #     print(drv_read(Keyboard))
+    # }

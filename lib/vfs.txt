@@ -1,0 +1,150 @@
+# atom:set grammar=ruby:
+@name Virtual File System
+@persist VFS_Root:table
+
+# TODO:
+# * Remove VFS_Root, there should be a separate initfs with it's own root
+# * vfs_print(Entry:table)
+
+# Types:
+#   0 Directory
+#   1 File
+#   2 Device
+function table vfs_newEntry(Name:string, Type:number) {
+  Entry = table()
+
+  Entry["name", string] = Name
+  Entry["type", number] = Type
+
+  return Entry
+}
+
+function table vfs_newDirectory(Name:string) {
+  Entry = vfs_newEntry(Name, 0)
+
+  Entry["entries", table] = table()
+
+  return Entry
+}
+
+# TODO: Abstract out into vfs_addChild or similar function
+function table vfs_newDirectory(Name:string, Parent:table) {
+  Entry = vfs_newDirectory(Name)
+
+  Entry["parent", table] = Parent
+  Parent["entries", table]:pushTable(Entry)
+
+  return Entry
+}
+
+function table vfs_newFile(Name:string) {
+  Entry = vfs_newEntry(Name, 1)
+
+  Entry["data", string] = ""
+
+  return Entry
+}
+
+# TODO: Abstract out into vfs_addChild or similar function
+function table vfs_newFile(Name:string, Parent:table) {
+  Entry = vfs_newFile(Name)
+
+  Entry["parent", table] = Parent
+  Parent["entries", table]:pushTable(Entry)
+
+  return Entry
+}
+
+# TODO: I dont love this but it allows "/", "/some/path", and "/some/other/" all to work correctly
+function array vfs_pathPartials(Path:string) { # TODO: Multiple forward slashes to single
+  Partials = Path:explode("/")
+
+  if (Partials[Partials:count(), string] == "") { Partials:pop() }
+
+  return Partials
+}
+
+function void vfs_init() {
+  VFS_Root = vfs_newDirectory("")
+}
+
+# DFS Algorithm
+# TODO: Use BFS Algorithm?
+function table vfs_entry(Partials:array, Entry:table) {
+  Partial = Partials[1, string]
+
+  if (Partials:count() == 1 & Entry["name", string] == Partial) { return Entry }
+  if (Entry["name", string] != Partial) { return table() }
+
+  Entries = Entry["entries", table]
+
+  Partials:shift()
+
+  for (Index = 1, Entries:count()+1) { # TODO: foreach is not working here
+    Child  = Entries[Index, table]
+    Result = vfs_entry(Partials, Child)
+
+    if (Result:count()) { return Result }
+  }
+
+  return table()
+}
+
+function table vfs_entry(Path:string) {
+  return vfs_entry(vfs_pathPartials(Path), VFS_Root)
+}
+
+# TODO: Code duplication in mkdir and touch
+function table vfs_mkdir(Path:string) {
+  Entry = vfs_entry(Path)
+  if (Entry:count()) { return table() } # TODO: Error: Path exists
+
+  Partials   = vfs_pathPartials(Path)
+  Name       = Partials[Partials:count(), string]
+  # TODO: When replaced with no slash, it loops forever when a single hier path is given (eg '/usr')
+  #       Use partial array instead of regexp?
+  ParentPath = Path:replaceRE("/?%w+$", "/")
+  Parent     = vfs_entry(ParentPath)
+
+  if (!Parent:count()) { return table() } # TODO: Error: Parent path does not exist
+
+  return vfs_newDirectory(Name, Parent)
+}
+
+function table vfs_touch(Path:string) {
+  Entry = vfs_entry(Path)
+  if (Entry:count()) { return table() } # TODO: Error: Path exists
+
+  # TODO: When replaced with no slash, it loops forever when a single hier path is given (eg '/usr')
+  #       Use partial array instead of regexp?
+  ParentPath = Path:replaceRE("/?%w+$", "/")
+  Parent     = vfs_entry(ParentPath)
+
+  if (!Parent:count()) { return table() }
+
+  Partials = vfs_pathPartials(Path)
+  Name     = Partials[Partials:count(), string]
+  Entry    = vfs_newFile(Name)
+
+  return vfs_newFile(Name, Parent)
+}
+
+# TODO
+# function table vfs_read(Entry:table) {
+#   return Entry
+# }
+
+# TODO: Ensure writable (device or file)
+function table vfs_write(Entry:table, Data:string) {
+  # Entry["data", string] += Data
+  Entry["data", string] = Entry["data", string] + Data
+
+  return Entry
+}
+
+function table vfs_write(Path:string, Data:string) {
+  Entry = vfs_entry(Path)
+  if (!Entry:count()) { return table() } # TODO: Error: Path does not exist
+
+  return vfs_write(Entry, Data)
+}

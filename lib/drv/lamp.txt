@@ -1,0 +1,20 @@
+# atom:set grammar=ruby:
+@name Lamp Driver
+
+if (0) {
+  #include "mark_iii/lib/drv"
+}
+
+# Read the state of the lamp
+function number drv_lamp_readNumber(Wire:wirelink) {
+  return Wire["On", number]
+}
+
+# Write the state of the lamp
+function void drv_lamp_writeNumber(Wire:wirelink, Value:number) {
+  Wire["On", number] = Value
+}
+
+if (first()) {
+  drv_mapDevice("gmod_wire_lamp", "lamp")
+}

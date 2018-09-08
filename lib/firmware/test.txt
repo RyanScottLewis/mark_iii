@@ -1,0 +1,55 @@
+# atom:set grammar=ruby:
+@name Test Firmware
+@inputs Dev0:wirelink Dev1:wirelink Dev2:wirelink
+@persist Button:table Lamp:table Screen:table CurrValue:number LastValue:number LampValue:number
+
+# Load libraries
+if (first()) {
+  # Kernel libraries
+  #include "mark_iii/lib/ansi"
+  #include "mark_iii/lib/vfs"
+
+  # Kernel functions
+  #include "mark_iii/lib/drv"
+  #include "mark_iii/lib/dev"
+  #include "mark_iii/lib/io"
+
+  # Kernel drivers
+  #include "mark_iii/lib/drv/btn"
+  #include "mark_iii/lib/drv/lamp"
+  #include "mark_iii/lib/drv/cs"
+}
+
+# Initialize the system
+if (first()) {
+  # runOnTick(1)
+
+  vfs_init()
+
+  vfs_mkdir("/var")
+  vfs_mkdir("/var/log")
+  vfs_touch("/var/log/messages")
+  vfs_write("/var/log/messages", "VFS subsystem initialized\n")
+
+  # printTable(VFS_Root)
+
+  # print(vfs_entry("/var/log/messages")["name", string])
+
+  dev_registerAll()
+  vfs_write("/var/log/messages", "Device subsystem initialized\n")
+
+  print(vfs_entry("/var/log/messages")["data", string])
+
+  io_writeString(Screen, ansi_ed(2)) # ANSI clear screen escape sequence
+  io_writeString(Screen, "System Initialized\n")
+}
+
+if (inputClk()) {
+  dev_registerAll()
+  # TODO: Only update the changed input
+  #   print(inputClkName())
+  #   print(wirelink():inputType(inputClkName()))
+}
+
+# if (tickClk()) {
+# }

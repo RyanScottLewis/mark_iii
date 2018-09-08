@@ -1,0 +1,21 @@
+# atom:set grammar=ruby:
+@name Hard Drive Driver
+
+# -= Includes =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
+
+if (0) { # All of the core is already loaded, this prevents "No such function" errors
+    #include "mark_iii/lib/drv"
+}
+
+# -= Standard Functions =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
+
+# Read the state of the button
+function number drv_hdd_read(Wire:wirelink) {
+    return 0 # TODO
+}
+
+# -= Device Mappings =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= #
+
+if(first()) {
+    drv_mapDevice("gmod_wire_dhdd", "hdd") # Works for "DHDD" and "Data - ROM"
+}

@@ -1,0 +1,82 @@
+# atom:set grammar=ruby:
+@name Device Manager
+@persist Devices:table
+
+# Handles the list of known connected devices.
+#
+# Devices are registered as a table with the following keys:
+#   name      The name of the input
+#   type      The device's entity type (retrieved via 'Wirelink:entity():type()')
+#   wirelink  The device's wirelink
+#   driver    The driver identifer for this device to use (empty by default)
+#
+# Internally, wirelinks are not used and tables with the schema above are passed around.
+
+if (0) {
+  #include "mark_iii/lib/drv"
+}
+
+# Register a device.
+#
+# @param Name The name of the input as defined with '@inputs'
+# @return The device table
+function table dev_register(Name:string) {
+  local Wirelink = ioGetInputWirelink(Name)
+  local Type     = Wirelink:entity():type()
+  local Device   = table()
+
+  # TODO: Return here if type is blank? Or Wirelink?
+  Device["name", string]       = Name
+  Device["type", string]       = Type
+  Device["wirelink", wirelink] = Wirelink
+
+  if (DeviceDrivers:exists(Type) ) {
+    Device["driver", string] = DeviceDrivers[Type, string]
+  } else {
+    Device["driver", string] = ""
+  }
+
+  Devices[Name, table] = Device
+
+  return Device
+}
+
+# Register all connected input wirelink devices.
+function void dev_registerAll() {
+  Devices:clear()
+
+  foreach(Index, Name:string = wirelink():inputs()) {
+    dev_register(Name)
+  }
+}
+
+# Return the first registered device using the given key
+function table dev_findBy(Key:string, Name:string) {
+  local Result = table()
+
+  foreach(Index, Device:table = Devices) {
+    if (Device[Key, string] == Name) {
+      Result = Device
+
+      break
+    }
+  }
+
+  return Result
+}
+
+# Return all devices using the given key
+function table dev_findAllBy(Key:string, Name:string) {
+    local Result = table()
+
+    foreach(Index, Device:table = Devices) {
+        if (Device[Key, string] == Name) { Result[Index, table] = Device }
+    }
+
+    return Result
+}
+
+# Determine if a device has a vaild driver set
+function number dev_hasDriver(Device:table) {
+  return Device["driver", string]:length() > 0 # TODO: Check if driver is registered
+}
