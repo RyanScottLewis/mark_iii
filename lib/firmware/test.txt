@@ -38,10 +38,14 @@ if (first()) {
   dev_registerAll()
   vfs_write("/var/log/messages", "Device subsystem initialized\n")
 
-  print(vfs_entry("/var/log/messages")["data", string])
+  # print(vfs_entry("/var/log/messages")["data", string])
+
+  local Messages = vfs_entry("/var/log/messages")["data", string]
+  Screen = dev_findBy("driver", "cs") # Find first device using cs (console screen) driver
 
   io_writeString(Screen, ansi_ed(2)) # ANSI clear screen escape sequence
-  io_writeString(Screen, "System Initialized\n")
+  io_writeString(Screen, Messages)
+  # io_writeString(Screen, "System Initialized\n")
 }
 
 if (inputClk()) {

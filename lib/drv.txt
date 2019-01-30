@@ -13,6 +13,7 @@
 # TODO: Drivers:table and driver registration with drv_register(Name:string) to help with io_ validations
 
 # Map a device type (retrieved via 'Wirelink:entity():type()') to a driver name
+# TODO Swap params
 function void drv_mapDevice(DeviceType:string, DriverName:string) {
   DeviceDrivers[DeviceType, string] = DriverName
 }
